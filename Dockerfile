@@ -1,8 +1,9 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
-COPY go.mod go.sum* ./
+# Copy assignment-gen-worker files (build context is ./services/)
+COPY assignment-gen-worker/go.mod assignment-gen-worker/go.sum* ./
 RUN go mod download
-COPY . .
+COPY assignment-gen-worker/ .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-w -s' -o worker ./cmd/worker
 
 # Use Debian-based Python image for better package compatibility
@@ -59,6 +60,15 @@ RUN pip install --no-cache-dir \
 
 # Copy the Go binary
 COPY --from=builder /app/worker .
+
+# Copy assignment-gen Python scripts and source code
+# The worker expects scripts at /app/assignment-gen/
+# Build context should be set to ./services/ (parent of assignment-gen-worker)
+# so we can access ../assignment-gen/ directory
+RUN mkdir -p /app/assignment-gen
+COPY assignment-gen/worker_*.py /app/assignment-gen/
+COPY assignment-gen/src /app/assignment-gen/src
+
 RUN chown -R appuser:appuser /app
 USER appuser
 

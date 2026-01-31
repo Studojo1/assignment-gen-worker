@@ -6,10 +6,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/blockblob"
 	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/container"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob/sas"
 )
 
 // Client uploads files to blob storage.
@@ -21,6 +23,7 @@ type Client interface {
 type AzureClient struct {
 	containerClient *container.Client
 	accountName     string
+	accountKey      string
 	containerName   string
 }
 
@@ -53,6 +56,7 @@ func NewAzureClient(accountName, accountKey, containerName string) (Client, erro
 	return &AzureClient{
 		containerClient: containerClient,
 		accountName:     accountName,
+		accountKey:      accountKey,
 		containerName:   containerName,
 	}, nil
 }
@@ -72,9 +76,28 @@ func (c *AzureClient) Upload(ctx context.Context, jobID, localPath string) (stri
 		return "", fmt.Errorf("upload: %w", err)
 	}
 
-	// Return blob URL (for production, generate SAS token)
-	// TODO: Generate SAS token for secure access
-	return blobClient.URL(), nil
+	// Generate SAS token for secure access (1 hour expiration)
+	cred, err := azblob.NewSharedKeyCredential(c.accountName, c.accountKey)
+	if err != nil {
+		return "", fmt.Errorf("create credential for SAS: %w", err)
+	}
+
+	permissions := sas.BlobPermissions{Read: true}
+	sasQueryParams, err := sas.BlobSignatureValues{
+		Protocol:      sas.ProtocolHTTPS,
+		StartTime:     time.Now().UTC(),
+		ExpiryTime:    time.Now().UTC().Add(1 * time.Hour),
+		Permissions:   permissions.String(),
+		ContainerName: c.containerName,
+		BlobName:      blobName,
+	}.SignWithSharedKey(cred)
+	if err != nil {
+		return "", fmt.Errorf("generate SAS token: %w", err)
+	}
+
+	// Return blob URL with SAS token
+	blobURL := blobClient.URL()
+	return fmt.Sprintf("%s?%s", blobURL, sasQueryParams.Encode()), nil
 }
 
 // LocalstackClient uses LocalStack for local Azure Blob Storage emulation.
