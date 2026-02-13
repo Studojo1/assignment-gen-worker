@@ -5,18 +5,15 @@ on:
     branches:
       - main
       - master
-    paths:
-      - 'services/assignment-gen-worker/**'
-      - '.github/workflows/service-ci-cd.yml'
   tags:
     - 'v*.*.*'
 
 jobs:
   build-and-deploy:
-    uses: ./.github/workflows/service-ci-cd.yml@main
+    uses: studojo/studojo/.github/workflows/service-ci-cd.yml@master
     with:
       service_name: assignment-gen-worker
-      service_path: ./services/assignment-gen-worker
+      service_path: .
       k8s_deployment_name: assignment-gen-worker
       k8s_container_name: assignment-gen-worker
     secrets:
@@ -26,4 +23,3 @@ jobs:
       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       KUBECONFIG: ${{ secrets.KUBECONFIG }}
       DEV_PANEL_WEBHOOK_URL: ${{ secrets.DEV_PANEL_WEBHOOK_URL }}
-
