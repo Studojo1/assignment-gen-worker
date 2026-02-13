@@ -1,0 +1,29 @@
+name: Assignment Gen Worker CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'services/assignment-gen-worker/**'
+      - '.github/workflows/service-ci-cd.yml'
+  tags:
+    - 'v*.*.*'
+
+jobs:
+  build-and-deploy:
+    uses: ./.github/workflows/service-ci-cd.yml@main
+    with:
+      service_name: assignment-gen-worker
+      service_path: ./services/assignment-gen-worker
+      k8s_deployment_name: assignment-gen-worker
+      k8s_container_name: assignment-gen-worker
+    secrets:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      DEV_PANEL_WEBHOOK_URL: ${{ secrets.DEV_PANEL_WEBHOOK_URL }}
+

@@ -1,6 +1,8 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
-# Copy assignment-gen-worker files (build context is ./services/)
+# Copy assignment-gen-worker files
+# Build context MUST be ./services/ (parent directory)
+# Build command: az acr build --registry <registry> --image assignment-gen-worker:latest -f assignment-gen-worker/Dockerfile ./services
 COPY assignment-gen-worker/go.mod assignment-gen-worker/go.sum* ./
 RUN go mod download
 COPY assignment-gen-worker/ .
@@ -63,11 +65,18 @@ COPY --from=builder /app/worker .
 
 # Copy assignment-gen Python scripts and source code
 # The worker expects scripts at /app/assignment-gen/
-# Build context should be set to ./services/ (parent of assignment-gen-worker)
-# so we can access ../assignment-gen/ directory
+# Build context MUST be set to ./services/ (parent directory)
+# This allows access to both assignment-gen-worker/ and assignment-gen/ directories
 RUN mkdir -p /app/assignment-gen
 COPY assignment-gen/worker_*.py /app/assignment-gen/
 COPY assignment-gen/src /app/assignment-gen/src
+
+# Verify all required scripts are present (fail build if missing)
+RUN ls -la /app/assignment-gen/worker_*.py && \
+    test -f /app/assignment-gen/worker_generate_outline.py || (echo "ERROR: worker_generate_outline.py not found!" && exit 1) && \
+    test -f /app/assignment-gen/worker_edit_outline.py || (echo "ERROR: worker_edit_outline.py not found!" && exit 1) && \
+    test -f /app/assignment-gen/worker_generate.py || (echo "ERROR: worker_generate.py not found!" && exit 1) && \
+    echo "✓ All worker scripts copied successfully"
 
 RUN chown -R appuser:appuser /app
 USER appuser
