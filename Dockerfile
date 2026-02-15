@@ -1,11 +1,9 @@
 FROM golang:1.23-alpine AS builder
 WORKDIR /app
 # Copy assignment-gen-worker files
-# Build context MUST be ./services/ (parent directory)
-# Build command: az acr build --registry <registry> --image assignment-gen-worker:latest -f assignment-gen-worker/Dockerfile ./services
-COPY assignment-gen-worker/go.mod assignment-gen-worker/go.sum* ./
+COPY go.mod go.sum* ./
 RUN go mod download
-COPY assignment-gen-worker/ .
+COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-w -s' -o worker ./cmd/worker
 
 # Use Debian-based Python image for better package compatibility
@@ -65,8 +63,6 @@ COPY --from=builder /app/worker .
 
 # Copy assignment-gen Python scripts and source code
 # The worker expects scripts at /app/assignment-gen/
-# Build context MUST be set to ./services/ (parent directory)
-# This allows access to both assignment-gen-worker/ and assignment-gen/ directories
 RUN mkdir -p /app/assignment-gen
 COPY assignment-gen/worker_*.py /app/assignment-gen/
 COPY assignment-gen/src /app/assignment-gen/src
