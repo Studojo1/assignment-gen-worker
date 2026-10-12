@@ -72,6 +72,24 @@ jobs:
             --name ${{ secrets.AKS_CLUSTER_NAME }} \
             --overwrite-existing
 
+      - name: Configure Azure OpenAI
+        run: |
+          # OpenAI model calls go to Azure OpenAI; the direct key is retired.
+          # Endpoint and key come from app-secrets as secretKeyRef, so the key
+          # never appears in the Deployment spec or in this job's logs. A
+          # strategic-merge patch on env is keyed by name, so a re-run updates
+          # both entries in place instead of appending duplicates.
+          cat > /tmp/azure-openai-env-patch.json <<'PATCH'
+          {"spec":{"template":{"spec":{"containers":[{"name":"${{ env.SERVICE_NAME }}","env":[
+            {"name":"AZURE_OPENAI_ENDPOINT","valueFrom":{"secretKeyRef":{"name":"app-secrets","key":"azure-openai-endpoint"}}},
+            {"name":"AZURE_OPENAI_API_KEY","valueFrom":{"secretKeyRef":{"name":"app-secrets","key":"azure-openai-api-key"}}}
+          ]}]}}}}
+          PATCH
+          kubectl patch deployment/${{ env.SERVICE_NAME }} -n studojo \
+            --type=strategic --patch-file=/tmp/azure-openai-env-patch.json
+          # Remove the retired direct key; a no-op once it is gone.
+          kubectl set env deployment/${{ env.SERVICE_NAME }} -n studojo OPENAI_API_KEY- || true
+
       - name: Deploy to Kubernetes
         run: |
           kubectl set image deployment/${{ env.SERVICE_NAME }} ${{ env.SERVICE_NAME }}=${{ env.REGISTRY }}/${{ env.SERVICE_NAME }}:${{ env.IMAGE_TAG }} -n studojo
