@@ -3,7 +3,7 @@ Project: Studojo Agents
 File: src/tools/uniqueness.py
 Author: Rithul Kamesh
 Created: 17 November 2025
-Description: Embeddings-based uniqueness checker using OpenAI embeddings.
+Description: Embeddings-based uniqueness checker using Azure OpenAI embeddings.
 """
 
 from __future__ import annotations
@@ -11,9 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Iterable, List, Sequence
 
-from langchain_openai import OpenAIEmbeddings
+from langchain_openai import AzureOpenAIEmbeddings
 from numpy import ndarray
 import numpy as np
+
+from chains.azure_openai import build_azure_embeddings
 
 
 @dataclass
@@ -36,8 +38,8 @@ class UniquenessChecker:
     plug in a persistent vector store.
     """
 
-    def __init__(self, embeddings: OpenAIEmbeddings | None = None) -> None:
-        self.embeddings = embeddings or OpenAIEmbeddings()
+    def __init__(self, embeddings: AzureOpenAIEmbeddings | None = None) -> None:
+        self.embeddings = embeddings or build_azure_embeddings()
 
     def _embed(self, texts: Sequence[str]) -> ndarray:
         vectors = self.embeddings.embed_documents(list(texts))

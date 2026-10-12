@@ -25,7 +25,7 @@ src_path = Path(__file__).resolve().parent / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
-from langchain_openai import ChatOpenAI
+from chains.azure_openai import build_azure_chat_llm, require_azure_openai_env
 from models.assignment import AssignmentSpec, AssignmentStatus
 from chains.assignment import (
     build_assignment_outline_chain,
@@ -45,12 +45,10 @@ async def generate_from_payload(payload_path: str, output_path: str):
     print(f"[worker_generate] Loaded payload: {json.dumps(payload, indent=2)}", flush=True)
 
     # Initialize LLM
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key:
-        raise ValueError("OPENAI_API_KEY environment variable not set")
-    
+    require_azure_openai_env()
+
     print(f"[worker_generate] Initializing LLM...", flush=True)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.1)
+    llm = build_azure_chat_llm(temperature=0.1)
     shared_llm = build_shared_llm(llm)
     print(f"[worker_generate] LLM initialized", flush=True)
 

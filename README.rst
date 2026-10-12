@@ -31,6 +31,10 @@ Environment Variables
 - ``AZURE_STORAGE_CONTAINER_NAME`` - Container name (default: ``assignments``)
 - ``PYTHON_PATH`` - Python executable path
 - ``ASSIGNMENT_GEN_SCRIPT_PATH`` - Path to Python assignment generator script
-- ``OPENAI_API_KEY`` - OpenAI API key
+- ``AZURE_OPENAI_ENDPOINT`` - Azure OpenAI endpoint (all OpenAI model calls go through Azure)
+- ``AZURE_OPENAI_API_KEY`` - Azure OpenAI API key
+- ``AZURE_OPENAI_MINI_DEPLOYMENT`` - Chat deployment (default: ``gpt-4o-mini``)
+- ``AZURE_OPENAI_EMBEDDING_DEPLOYMENT`` - Embeddings deployment (default: ``text-embedding-3-small``)
+- ``OPENAI_API_VERSION`` - Azure OpenAI API version (default: ``2024-10-21``)
 - ``ANTHROPIC_API_KEY`` - Anthropic API key
 - ``REPHRASY_API_KEY`` - Rephrasy API key

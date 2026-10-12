@@ -83,7 +83,6 @@ func (g *PythonGenerator) GenerateOutline(ctx context.Context, payload []byte) (
 	slog.Info("starting python outline generator", "python", pythonCmd, "script", scriptPath, "payload", payloadFile, "output", outputPath)
 	cmd := exec.CommandContext(ctx, pythonCmd, scriptPath, payloadFile, outputPath)
 	cmd.Env = append(os.Environ(),
-		"OPENAI_API_KEY="+os.Getenv("OPENAI_API_KEY"),
 		"ANTHROPIC_API_KEY="+os.Getenv("ANTHROPIC_API_KEY"),
 		"REPHRASY_API_KEY="+os.Getenv("REPHRASY_API_KEY"),
 		"PYTHONPATH=/app/assignment-gen/src:/app/assignment-gen",
@@ -160,7 +159,6 @@ func (g *PythonGenerator) EditOutline(ctx context.Context, outline json.RawMessa
 	slog.Info("starting python outline editor", "python", pythonCmd, "script", scriptPath, "payload", payloadFile, "output", outputPath)
 	cmd := exec.CommandContext(ctx, pythonCmd, scriptPath, payloadFile, outputPath)
 	cmd.Env = append(os.Environ(),
-		"OPENAI_API_KEY="+os.Getenv("OPENAI_API_KEY"),
 		"ANTHROPIC_API_KEY="+os.Getenv("ANTHROPIC_API_KEY"),
 		"REPHRASY_API_KEY="+os.Getenv("REPHRASY_API_KEY"),
 		"PYTHONPATH=/app/assignment-gen/src:/app/assignment-gen",
@@ -242,7 +240,6 @@ func (g *PythonGenerator) Generate(ctx context.Context, payload []byte) (*Result
 	slog.Info("starting python generator", "python", pythonCmd, "script", scriptPath, "payload", payloadFile, "output", outputPath, "workdir", "/app/assignment-gen", "doc_output_dir", tmpDir)
 	cmd := exec.CommandContext(ctx, pythonCmd, scriptPath, payloadFile, outputPath)
 	cmd.Env = append(os.Environ(),
-		"OPENAI_API_KEY="+os.Getenv("OPENAI_API_KEY"),
 		"ANTHROPIC_API_KEY="+os.Getenv("ANTHROPIC_API_KEY"),
 		"REPHRASY_API_KEY="+os.Getenv("REPHRASY_API_KEY"),
 		"PYTHONPATH=/app/assignment-gen/src:/app/assignment-gen",
